@@ -1,0 +1,192 @@
+---
+title: "Assessment1"
+author: "Shoyeb Mohammed - s4633055"
+date: "03/03/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# RMarkdown *editing*
+
+R markdown is a file format for making dynamic documents with R. It is the best way to present your work done with R. You can make a HTML, PDF or Word document by clicking "knit" and selecting your document type.
+
+#### 5. Inster an in-text link:
+
+[Click Here!](https://rmarkdown.rstudio.com/lesson-8.html) to go to the lesson 8.
+
+
+#### 6. Insert an R chunck and create a variable with this dataset:
+
+```{r}
+
+fastfood <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv")
+
+```
+
+#### 7. Display first 10 rows useing head() and kable()
+
+```{r}
+
+# install.packages("knitr")
+library(knitr)
+
+head(fastfood, 10)
+
+kable(fastfood[1:5,])
+
+```
+
+### End of the part 1
+
+# Part - 2
+
+#### 8. Display the observations that has more than 1000 calories.
+
+```{r}
+library(dplyr)
+
+fastfood %>% filter(calories > 1000)
+```
+
+#### 9. Arrange observations with total_fat > 40, total_carb > 80, in descending order.
+
+```{r}
+library(dplyr)
+
+fastfood %>% filter(total_fat > 40, total_carb > 80) -> dont_eat_this
+
+arrange(dont_eat_this, desc(total_carb))
+```
+
+#### 10. Using the fastfood data set - create a variable "heavy_food"; calories > 500 ~ "heavy"  calories < 250 ~ "low", average for all other cases.
+
+###### To make the data tidy I have eliminated the other variables as the question only asks for calories and new variable heavy_food
+
+```{r}
+
+fastfood %>% select ("restaurant", "item", "calories") %>% mutate(heavy_food = case_when(calories > 500 ~ "heavy", calories < 250 ~ "low", T ~ "average"))
+
+iris <- as_tibble(iris)
+
+```
+
+#### 11. Display the types of variables in the dataset using "skimr" package.
+
+```{r}
+
+library(skimr)
+
+skim(fastfood)
+```
+
+#### 12. Present the count observations from each resturant in a descending order and show the item count.
+
+```{r}
+
+fastfood %>% count(restaurant, sort = T)
+
+fastfood %>% count(item)
+
+```
+
+#### 13. Using grouping, summarise and display the average number of calories for each resturant.
+
+```{r}
+
+fastfood %>% group_by(restaurant) -> average_calories
+
+average_calories %>% summarise(calories = mean(calories))
+
+
+```
+
+#### 14. Add variables to dataset, which:
+##### - "average_calories"
+
+```{r}
+
+fastfood %>% group_by(restaurant) -> rest_grp
+
+rest_grp %>% summarise(calories = mean(calories)) -> average_calories
+
+library(base)
+
+names(average_calories) <- c("Restaurants", "Avg_calories")
+
+average_calories
+
+```
+
+##### - "max_fat"
+
+```{r}
+max_fat <- rest_grp %>% summarise(total_fat = max(total_fat))
+
+names(max_fat) <- c("Restaurants","Max_fat")
+
+max_fat
+
+```
+
+##### - "min_cholesterol"
+
+```{r}
+min_cholesterol <- rest_grp %>% summarise(cholesterol = min(cholesterol))
+
+names(min_cholesterol) <- c("Restaurants","Min_cholesterol")
+
+min_cholesterol
+
+```
+
+#### 15. Display the data vis of total fat per each type of restaurant. Write (2-3 sentences) why you believe this type of data vis present such information best.
+
+Why Bar chart? 
+
+The data which is visualized below has 2 variables: 
+1) Restaurants (Character or Discreet data)
+2) Max_fat (Variable or Continuous data)
+
+Bar chart is the best option to plot a graph to show the dynamics of variables on an axis where the other axis holds the discreet characters.
+
+```{r}
+library(forcats)
+library(dplyr)
+library(ggplot2)
+
+max_fat %>%
+  mutate(Restaurants = fct_reorder(Restaurants, Max_fat)) %>%
+  ggplot(aes(Restaurants, Max_fat, fill = Restaurants)) +
+  geom_col() + coord_flip() +
+  labs(title = "Chart showing max fat in restaurants")
+```
+
+
+#### 16. Add a variable to the dataset, which calculates the sum of cholesterol and sodium and anme it "cholestrol_sodium" - also remove "salad" variable.
+
+To make the data tidy, I have eliminated the other variables from the data on purpose.
+
+```{r}
+
+fastfood %>% select ("restaurant", "item", "cholesterol", "sodium") %>% mutate(cholesterol_sodium = cholesterol + sodium, "salad" = NULL)
+
+```
+
+#### 17. Use observations for McDonalds to plot sugar variable against protine with "geom_point().
+
+
+```{r}
+
+fastfood %>% select("restaurant", "sugar", "protein") %>%
+  filter( restaurant == "Mcdonalds") %>%
+  ggplot(aes(sugar, protein)) + 
+  geom_point(col = "blue") + 
+  labs(x = "Mac's sugar", y = "Mac's protein",
+       title = "Mac's protien to suagr ratio")
+```
+
+## End of part 2
