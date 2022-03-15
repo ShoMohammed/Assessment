@@ -49,7 +49,9 @@ kable(fastfood[1:5,])
 ```{r}
 library(dplyr)
 
-fastfood %>% filter(calories > 1000)
+fastfood %>% filter(calories > 1000) -> cal
+
+kable(cal[1:10,])
 ```
 
 #### 9. Arrange observations with total_fat > 40, total_carb > 80, in descending order.
@@ -60,6 +62,8 @@ library(dplyr)
 fastfood %>% filter(total_fat > 40, total_carb > 80) -> dont_eat_this
 
 arrange(dont_eat_this, desc(total_carb))
+
+kable(dont_eat_this[1:10,])
 ```
 
 #### 10. Using the fastfood data set - create a variable "heavy_food"; calories > 500 ~ "heavy"  calories < 250 ~ "low", average for all other cases.
@@ -68,9 +72,11 @@ arrange(dont_eat_this, desc(total_carb))
 
 ```{r}
 
-fastfood %>% select ("restaurant", "item", "calories") %>% mutate(heavy_food = case_when(calories > 500 ~ "heavy", calories < 250 ~ "low", T ~ "average"))
+fastfood %>% select ("restaurant", "item", "calories") %>% mutate(heavy_food = case_when(calories > 500 ~ "heavy", calories < 250 ~ "low", T ~ "average")) -> h1
 
 iris <- as_tibble(iris)
+
+kable(h1[1:10,])
 
 ```
 
@@ -99,7 +105,7 @@ fastfood %>% count(item)
 
 fastfood %>% group_by(restaurant) -> average_calories
 
-average_calories %>% summarise(calories = mean(calories))
+average_calories %>% summarise(calories = mean(calories)) %>% kable()
 
 
 ```
@@ -109,9 +115,9 @@ average_calories %>% summarise(calories = mean(calories))
 
 ```{r}
 
-fastfood %>% group_by(restaurant) -> rest_grp
+fastfood %>% group_by(restaurant) -> rest_grp 
 
-rest_grp %>% summarise(calories = mean(calories)) -> average_calories
+rest_grp %>% summarise(calories = mean(calories)) %>% kable() -> average_calories
 
 library(base)
 
@@ -124,7 +130,7 @@ average_calories
 ##### - "max_fat"
 
 ```{r}
-max_fat <- rest_grp %>% summarise(total_fat = max(total_fat))
+max_fat <- rest_grp %>% summarise(total_fat = max(total_fat)) %>% kable()
 
 names(max_fat) <- c("Restaurants","Max_fat")
 
@@ -135,11 +141,12 @@ max_fat
 ##### - "min_cholesterol"
 
 ```{r}
-min_cholesterol <- rest_grp %>% summarise(cholesterol = min(cholesterol))
+min_cholesterol <- rest_grp %>% summarise(cholesterol = min(cholesterol)) %>% kable()
 
 names(min_cholesterol) <- c("Restaurants","Min_cholesterol")
 
 min_cholesterol
+
 
 ```
 
@@ -156,13 +163,15 @@ Bar chart is the best option to plot a graph to show the dynamics of variables o
 ```{r}
 library(forcats)
 library(dplyr)
+library(knitr)
 library(ggplot2)
 
-max_fat %>%
-  mutate(Restaurants = fct_reorder(Restaurants, Max_fat)) %>%
-  ggplot(aes(Restaurants, Max_fat, fill = Restaurants)) +
+fastfood %>%
+  mutate(restaurant = fct_reorder(restaurant, total_fat)) %>%
+  ggplot(aes(restaurant, total_fat, fill = restaurant)) +
   geom_col() + coord_flip() +
-  labs(title = "Chart showing max fat in restaurants")
+  labs(title = "Chart showing total fat in restaurants")
+
 ```
 
 
@@ -172,7 +181,9 @@ To make the data tidy, I have eliminated the other variables from the data on pu
 
 ```{r}
 
-fastfood %>% select ("restaurant", "item", "cholesterol", "sodium") %>% mutate(cholesterol_sodium = cholesterol + sodium, "salad" = NULL)
+fastfood %>% select ("restaurant", "item", "cholesterol", "sodium") %>% mutate(cholesterol_sodium = cholesterol + sodium, "salad" = NULL) -> c1
+
+kable(c1[1:10,])
 
 ```
 
@@ -190,3 +201,93 @@ fastfood %>% select("restaurant", "sugar", "protein") %>%
 ```
 
 ## End of part 2
+
+#### 18. Identify variables which should be factors and transform their type into a factor variable.
+
+```{r}
+
+library(skimr)
+
+skim(fastfood)
+
+fastfood %>% mutate_if(is.character,factor) -> fastfood
+
+skim(fastfood)
+```
+
+
+#### 19. Use calories variable for cut_number() function and split it into 3 catagories 'n=3', add labels
+
+```{r}
+library(dplyr)
+library(knitr)
+
+fastfood %>% select ("restaurant", "item", "calories") %>%
+  mutate(calories_type = cut_number( calories, n = 3, labels = c("low","medium","high"))) %>%
+  arrange(desc(calories)) -> f1
+
+kable(f1[1:10,])
+```
+
+#### 20. Show the distribution of calories_type in food items for each type of restaurant.
+count the calories type for each rest and graph it
+
+```{r}
+library(knitr)
+library(dplyr)
+library(ggplot2)
+
+fastfood %>% select ("restaurant", "item", "calories") %>%
+  mutate(calories_type = cut_number( calories, n = 3, labels = c("low","medium","high"))) %>%
+  arrange(desc(calories)) -> calories_type
+
+calories_type %>% ggplot(aes(restaurant, calories_type, col = calories_type)) + geom_count() + coord_flip()
+```
+
+
+#### 21. Second variable should show the percentage of "trans_fat" in "total_fat". Add the variable to the data set "trans_fat_percent".
+
+
+```{r}
+
+fastfood %>% mutate(trans_fat_percent = trans_fat/total_fat * 100) %>% select("restaurant", "item", "total_fat", "trans_fat", "trans_fat_percent") -> trans_fat_percent
+
+kable(trans_fat_percent[1:10,])
+
+View(trans_fat_percent)
+
+```
+
+#### 22. Show the distribution of trans_fat in food items for each type of restautrant.
+
+```{r}
+library(knitr)
+library(dplyr)
+library(ggplot2)
+
+fastfood %>%
+  ggplot(aes(restaurant, trans_fat, fill = restaurant)) + geom_col() + facet_wrap(~trans_fat) + coord_flip() + labs( x = "Trans_fat", y = "Types of restaurants")
+```
+
+
+#### 23. Show the average (mean) "total_fat" for each type of restaurant. 
+
+```{r}
+fastfood %>% group_by(restaurant) -> average_total_fat
+
+average_total_fat %>% summarise(total_fat = mean(total_fat))
+ 
+```
+
+#### 24. Create a data viz that allows to compare restaurants on this variable "total_fat"
+
+
+```{r}
+fastfood %>%
+  group_by(restaurant) %>% summarize(avg_fat = mean(total_fat)) -> good_rest
+
+View(good_rest)
+
+ggplot(good_rest, aes(restaurant, avg_fat, fill = restaurant)) + geom_col()
+```
+
