@@ -1,0 +1,143 @@
+---
+title: "Assessment2"
+author: "Shoyeb Mohammed"
+date: "17/03/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*Shoyeb Mohammed* - **s4633055**
+--------------------------------------------------------------------------------
+Assignment 2 
+--------------------------------------------------------------------------------
+
+### 1. Display the first 10 rows of the dataset using kable() function.
+
+```{r}
+# install.packages("tidyverse")
+# install.package("knitr")
+library(tidyverse)
+library(knitr)
+
+kable(data[1:10,])
+```
+
+### 2. Using skim() and display the summary of varibale.
+
+```{r}
+library(skimr)
+
+skim(data)
+```
+
+### 3. Use fct_reorder and parse_number functions to create a factor variable 'family_income'
+
+```{r}
+
+data %>%
+  mutate(family_income = fct_reorder(family_income, parse_number(family_income)))
+
+
+```
+
+### 4. What is the number of people who celebrate?
+ 
+### The number of people who celebrate are 980.
+
+```{r}
+library(dplyr)
+
+data %>% count(celebrate)
+```
+
+### 5. What are catagories and insights for each main dish serverd and the method it is prepared?
+
+```{r}
+library(dplyr)
+
+data %>% count(main_dish, main_prep, sort = T)
+```
+
+
+### 6. Create 3 different data viz showing insights for main dish served and the method. Provide your own legend and use themes.
+
+```{r}
+data %>% count(main_dish, main_prep, sort = T) -> main_dish
+
+main_dish %>% na.omit() -> main_dish
+
+main_dish %>% ggplot(aes(main_dish, n, fill = main_prep)) + geom_col() + facet_wrap(~ main_prep) + coord_flip()
+
+```
+
+```{r}
+data %>% count(main_dish, stuffing, sort = T) -> main_dish_stuff
+
+main_dish_stuff %>% na.omit() -> main_dish_stuff
+
+main_dish_stuff %>% na.exclude(main_dish_stuff, "I don't know")
+
+main_dish_stuff %>% ggplot(aes(main_dish, stuffing, col = main_dish)) + geom_count() + coord_flip()
+
+```
+
+```{r}
+data %>% count(main_dish, gravy, sort = T) -> main_dish
+
+main_dish %>% na.omit() -> main_dish
+
+main_dish %>% ggplot(aes(main_dish, gravy, col = gravy)) + geom_count() + coord_flip()
+```
+
+### 7. How many use carnberry sauce? How many use gravy?
+
+```{r}
+
+library(dplyr)
+
+data %>% count(cranberry)
+data %>% count(gravy)
+
+```
+
+### 8-9. What is the distribution of those who celebrate across income range. Create a data viz
+
+```{r}
+
+```
+
+### 10. Use the code given and create a new data set
+
+```{r}
+data %>% select(id, starts_with("side"),
+       starts_with("pie"),
+       starts_with("dessert")) %>%
+  select(-side15, -pie13, -dessert12) %>%
+  gather(type, value, -id) %>%
+  filter(!is.na(value),
+         !value %in% c("None", "Other (please specify)")) %>%
+  mutate(type = str_remove(type, "\\d+")) -> data3
+
+View(data3)
+
+summary(data3)
+
+```
+
+
+11-12 Install package "widyr" and use "prirwise_cor"
+
+```{r}
+library(widyr)
+
+data3 %>% pairwise_cor(value, id, sort = T)
+
+```
+
+
+13. Use lm() or randomForest() function to build a model that predict a family income based on data in the dataset. 
+
+
